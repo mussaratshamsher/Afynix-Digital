@@ -31,7 +31,9 @@ def clean_data(df):
     return df
 
 if __name__ == "__main__":
-    raw_data = pd.read_csv('data/housing.csv')
+    import os
+    BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    raw_data = pd.read_csv(os.path.join(BASE_DIR, 'data', 'housing.csv'))
     cleaned_data = clean_data(raw_data)
-    cleaned_data.to_csv('data/cleaned_housing.csv', index=False)
+    cleaned_data.to_csv(os.path.join(BASE_DIR, 'data', 'cleaned_housing.csv'), index=False)
     print(f"Data cleaned. Rows before: {len(raw_data)}, Rows after: {len(cleaned_data)}")

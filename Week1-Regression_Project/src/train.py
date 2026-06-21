@@ -8,8 +8,11 @@ from preprocessing import clean_data
 from feature_engineering import engineer_features, get_preprocessing_pipeline
 
 def train_models():
+    import os
+    BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    
     # Load and clean data
-    df = pd.read_csv('data/housing.csv')
+    df = pd.read_csv(os.path.join(BASE_DIR, 'data', 'housing.csv'))
     df = clean_data(df)
     df = engineer_features(df)
     
@@ -33,7 +36,7 @@ def train_models():
         ('regressor', LinearRegression())
     ])
     lr_pipeline.fit(X_train, y_train)
-    joblib.dump(lr_pipeline, 'models/linear_regression.pkl')
+    joblib.dump(lr_pipeline, os.path.join(BASE_DIR, 'models', 'linear_regression.pkl'))
     
     # Model 2: Random Forest with GridSearchCV
     rf_pipeline = Pipeline(steps=[
@@ -51,7 +54,7 @@ def train_models():
     grid_search.fit(X_train, y_train)
     
     best_rf_model = grid_search.best_estimator_
-    joblib.dump(best_rf_model, 'models/random_forest.pkl')
+    joblib.dump(best_rf_model, os.path.join(BASE_DIR, 'models', 'random_forest.pkl'))
     
     print("Models trained and saved to models/ directory.")
     return X_test, y_test

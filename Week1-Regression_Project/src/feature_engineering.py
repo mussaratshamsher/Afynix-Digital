@@ -34,7 +34,9 @@ def get_preprocessing_pipeline(cat_features, num_features):
     return preprocessor
 
 if __name__ == "__main__":
-    df = pd.read_csv('data/cleaned_housing.csv')
+    import os
+    BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    df = pd.read_csv(os.path.join(BASE_DIR, 'data', 'cleaned_housing.csv'))
     df = engineer_features(df)
-    df.to_csv('data/engineered_housing.csv', index=False)
+    df.to_csv(os.path.join(BASE_DIR, 'data', 'engineered_housing.csv'), index=False)
     print(f"Feature engineering complete. Columns: {df.columns.tolist()}")

@@ -4,8 +4,11 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 def explain_model():
+    import os
+    BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    
     # Load the Random Forest model (pipeline)
-    model = joblib.load('models/random_forest.pkl')
+    model = joblib.load(os.path.join(BASE_DIR, 'models', 'random_forest.pkl'))
     
     # Extract feature names from preprocessor
     preprocessor = model.named_steps['preprocessor']
@@ -33,7 +36,7 @@ def explain_model():
     sns.barplot(x='Importance', y='Feature', data=feature_importance_df.head(10))
     plt.title('Top 10 Feature Importances (Random Forest)')
     plt.tight_layout()
-    plt.savefig('notebooks/feature_importance.png')
+    plt.savefig(os.path.join(BASE_DIR, 'notebooks', 'feature_importance.png'))
     plt.close()
     
     print("Feature importance plot saved to notebooks/feature_importance.png")

@@ -7,8 +7,11 @@ from src.preprocessing import clean_data
 from src.feature_engineering import engineer_features
 from src.llm_insights import generate_insights
 
+# Get directory containing app.py
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
 # Add src to path
-sys.path.append(os.path.join(os.getcwd(), 'src'))
+sys.path.append(os.path.join(BASE_DIR, 'src'))
 
 st.set_page_config(page_title="Karachi Real Estate AI", layout="wide")
 
@@ -18,7 +21,7 @@ st.markdown("---")
 # Load Data
 @st.cache_data
 def load_data():
-    df = pd.read_csv('data/housing.csv')
+    df = pd.read_csv(os.path.join(BASE_DIR, 'data', 'housing.csv'))
     return df
 
 df_raw = load_data()
@@ -46,16 +49,19 @@ if page == "Overview & EDA":
 elif page == "Model Performance":
     st.header("📈 Model Evaluation")
     
-    if os.path.exists('models/random_forest.pkl'):
+    rf_model_path = os.path.join(BASE_DIR, 'models', 'random_forest.pkl')
+    if os.path.exists(rf_model_path):
         # Here we would normally run src/evaluate.py and show results
         # For simplicity, we can show the saved images
         st.subheader("Actual vs Predicted (Random Forest)")
-        if os.path.exists('notebooks/random_forest_actual_vs_pred.png'):
-            st.image('notebooks/random_forest_actual_vs_pred.png')
+        rf_pred_img = os.path.join(BASE_DIR, 'notebooks', 'random_forest_actual_vs_pred.png')
+        if os.path.exists(rf_pred_img):
+            st.image(rf_pred_img)
         
         st.subheader("Feature Importance")
-        if os.path.exists('notebooks/feature_importance.png'):
-            st.image('notebooks/feature_importance.png')
+        feat_imp_img = os.path.join(BASE_DIR, 'notebooks', 'feature_importance.png')
+        if os.path.exists(feat_imp_img):
+            st.image(feat_imp_img)
     else:
         st.warning("Please run the training script first to see performance.")
 
@@ -73,7 +79,8 @@ elif page == "Price Prediction":
         bathrooms = st.slider("Bathrooms", 1, 10, 2)
     
     if st.button("Predict Price"):
-        model = joblib.load('models/random_forest.pkl')
+        rf_model_path = os.path.join(BASE_DIR, 'models', 'random_forest.pkl')
+        model = joblib.load(rf_model_path)
         
         input_df = pd.DataFrame({
             'location': [location],

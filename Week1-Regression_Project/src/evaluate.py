@@ -9,8 +9,11 @@ from feature_engineering import engineer_features
 from sklearn.model_selection import train_test_split
 
 def evaluate_models():
+    import os
+    BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    
     # Load and clean data
-    df = pd.read_csv('data/housing.csv')
+    df = pd.read_csv(os.path.join(BASE_DIR, 'data', 'housing.csv'))
     df = clean_data(df)
     df = engineer_features(df)
     
@@ -20,8 +23,8 @@ def evaluate_models():
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
     
     models = {
-        'Linear Regression': joblib.load('models/linear_regression.pkl'),
-        'Random Forest': joblib.load('models/random_forest.pkl')
+        'Linear Regression': joblib.load(os.path.join(BASE_DIR, 'models', 'linear_regression.pkl')),
+        'Random Forest': joblib.load(os.path.join(BASE_DIR, 'models', 'random_forest.pkl'))
     }
     
     results = []
@@ -49,7 +52,8 @@ def evaluate_models():
         plt.xlabel('Actual Price (PKR)')
         plt.ylabel('Predicted Price (PKR)')
         plt.tight_layout()
-        plt.savefig(f'notebooks/{name.lower().replace(" ", "_")}_actual_vs_pred.png')
+        img_path = os.path.join(BASE_DIR, 'notebooks', f'{name.lower().replace(" ", "_")}_actual_vs_pred.png')
+        plt.savefig(img_path)
         plt.close()
 
     results_df = pd.DataFrame(results)
