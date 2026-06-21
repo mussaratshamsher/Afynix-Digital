@@ -28,8 +28,18 @@ df_raw = load_data()
 df_clean = clean_data(df_raw.copy())
 df_engineered = engineer_features(df_clean.copy())
 
-# Sidebar Navigation
-page = st.sidebar.selectbox("Go to", ["Overview & EDA", "Model Performance", "Price Prediction", "AI Business Insights"])
+# Initialize session state for navigation
+if "current_page" not in st.session_state:
+    st.session_state.current_page = "Overview & EDA"
+
+pages_list = ["Overview & EDA", "Model Performance", "Price Prediction", "AI Business Insights"]
+page = st.sidebar.selectbox(
+    "Go to",
+    pages_list,
+    index=pages_list.index(st.session_state.current_page),
+    key="nav_page"
+)
+st.session_state.current_page = page
 
 if page == "Overview & EDA":
     st.header("📊 Dataset Overview")
