@@ -31,6 +31,11 @@ def explain_model():
         'Importance': importances
     }).sort_values(by='Importance', ascending=False)
     
+    # Save to CSV
+    csv_path = os.path.join(BASE_DIR, 'models', 'feature_importances.csv')
+    feature_importance_df.to_csv(csv_path, index=False)
+    print(f"Feature importances saved to {csv_path}")
+    
     # Plot top 10
     plt.figure(figsize=(12, 8))
     sns.barplot(x='Importance', y='Feature', data=feature_importance_df.head(10))

@@ -1,0 +1,36 @@
+{
+    "Linear Regression": {
+        "train": {
+            "R2": 0.9134017209344009,
+            "MAE": 9161228.357453315,
+            "RMSE": 12879164.938418115
+        },
+        "test": {
+            "R2": 0.874856190754342,
+            "MAE": 10524212.913939407,
+            "RMSE": 14339309.264132299
+        },
+        "overfitting": {
+            "status": "Healthy / Well Generalized",
+            "description": "The training and testing performances are close, suggesting the model generalizes well to unseen data.",
+            "gap": 0.03854553018005891
+        }
+    },
+    "Random Forest": {
+        "train": {
+            "R2": 0.9978844952016431,
+            "MAE": 1107717.9245142005,
+            "RMSE": 2012982.8816240833
+        },
+        "test": {
+            "R2": 0.9782778837986255,
+            "MAE": 3357298.4985119053,
+            "RMSE": 5974129.227489851
+        },
+        "overfitting": {
+            "status": "Healthy / Well Generalized",
+            "description": "The training and testing performances are close, suggesting the model generalizes well to unseen data.",
+            "gap": 0.01960661140301767
+        }
+    }
+}

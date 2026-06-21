@@ -1,97 +1,134 @@
-# 🏙️ Karachi Real Estate Pricing Prediction & AI Insights
+# 🏙️ Karachi Real Estate AI: Pricing Prediction & Business Portal
 
-## 📌 Project Overview
-This is a professional, end-to-end Machine Learning project developed for a real estate startup in **Karachi, Pakistan**. The goal is to predict property prices with high accuracy while providing automated business insights using Large Language Models (LLMs).
+Welcome to the **Karachi Real Estate Pricing & Analytics Portal**, an end-to-end data science and machine learning application tailored for real estate startups in Karachi, Pakistan. 
 
-The project features a modular architecture, localized data for Karachi (DHA, Clifton, Bahria Town, etc.), and a production-ready Streamlit dashboard.
-
----
-
-## 🛠️ Tech Stack
-- **Language:** Python 3.11+
-- **Data Processing:** `Pandas`, `NumPy`
-- **Visualization:** `Matplotlib`, `Seaborn`, `Plotly`
-- **Machine Learning:** `Scikit-Learn` (Linear Regression, Random Forest, GridSearchCV, Pipelines)
-- **Model Storage:** `Joblib`
-- **UI/Frontend:** `Streamlit`
-- **AI/LLM:** `Groq SDK` (Model: `llama-3.3-70b-versatile`)
-- **Environment Management:** `python-dotenv`
+This project integrates classical statistical regression modeling with Large Language Models (LLMs) and interactive visualization widgets, creating a production-grade analysis platform for real estate appraisal and investment.
 
 ---
 
-## 📋 Dataset Properties
-The model uses a Karachi-localized dataset with the following features:
-- **Location:** Key areas (DHA, Clifton, Bahria Town, Gulshan-e-Iqbal, North Nazimabad, Malir, Korangi, Federal B Area).
-- **Area (Sq Yards):** Size of the property ranging from 80 to 1000+ sq yards.
-- **Bedrooms/Bathrooms:** Numerical count of rooms.
-- **Property Type:** House, Flat, or Penthouse.
-- **Price (PKR):** The target variable (Target).
-- **Engineered Features:** `price_per_sqft` and `room_density`.
+## 🚀 Key Features
+
+1. **📊 Comprehensive Data Inspection (`isnull()` & `dtypes`):**
+   - Live checks for dataset shape, location counts, and duplicate entries.
+   - Transparent reporting on missing values per column via `isnull()` charts.
+   - Comprehensive data types (`categorical` vs. `numerical`) audit tables.
+
+2. **🔥 Interactive Exploratory Data Analysis (EDA):**
+   - **Correlation Heatmap:** Interactive correlation grid mapping relationships between numerical characteristics.
+   - **Trend Plots:** Plotly scatter plots representing price trends vs. plot sizes, color-coded dynamically.
+   - **Distribution Auditing:** Box plots analyzing pricing variance across Karachi neighborhoods (DHA, Clifton, Bahria Town, etc.).
+
+3. **⚙️ Preprocessing & Feature Engineering:**
+   - Preprocessing steps including duplicate removal, median (numerical) and mode (categorical) missing value imputation, and Interquartile Range (IQR) outlier removal.
+   - Feature engineering adding ratios like **Room Density** ($(\text{Bedrooms} + \text{Bathrooms}) / \text{Area}$) and **Price per Sqft**.
+
+4. **📈 Benchmarking & Overfitting Guardrails:**
+   - Parallel evaluation of the baseline **Linear Regression** model and optimized **Random Forest Regressor** (tuned via `GridSearchCV`).
+   - Dynamic comparison table highlighting Train vs. Test metrics ($R^2$, MAE, RMSE).
+   - Automated **Overfitting Check** verifying generalization gaps and alert warnings.
+   - Full suite of residual, actual vs. predicted, and error diagnostics.
+
+5. **🔍 Feature Importance Ranking:**
+   - Extraction and ranking of structural pricing weights.
+   - Explanation of key pricing drivers in Karachi (e.g. plot area scale, location premiums, property structure).
+
+6. **🏠 Smart Price Valuation Engine:**
+   - Real-time valuation calculator applying the pre-trained Scikit-Learn pipelines to user inputs.
+   - **AI Property Advisor:** Generates localized real estate context, spatial layout analysis, and investment recommendations.
+   - **API Fallback System:** Uses a rule-based advisor engine if LLM API keys are unconfigured, ensuring 100% application uptime.
+
+7. **💡 AI Market Insights:**
+   - Interactive executive reports analyzing Karachi's market structure, risks, and strategic suggestions.
 
 ---
 
-## ⚙️ How It Works (Workflow)
+## 📁 Repository Structure
 
-1.  **Data Generation:** `src/generate_data.py` creates a realistic synthetic dataset with Karachi's pricing trends.
-2.  **Preprocessing:** `src/preprocessing.py` cleans the data, handles missing values via median/mode imputation, and removes outliers using the IQR (Interquartile Range) method.
-3.  **Feature Engineering:** `src/feature_engineering.py` applies One-Hot Encoding to categorical variables and scales numerical features using `StandardScaler` within a Scikit-Learn Pipeline.
-4.  **Training:** `src/train.py` splits data 80/20 and trains two models. It uses `GridSearchCV` to optimize the Random Forest Regressor.
-5.  **Evaluation:** `src/evaluate.py` calculates R², MAE, MSE, and RMSE. It also generates Actual vs. Predicted plots.
-6.  **Explainability:** `src/explainability.py` extracts feature importances to show which factors drive prices most.
-7.  **AI Integration:** `src/llm_insights.py` sends model results to Groq LLM to generate professional business strategy reports.
-8.  **Dashboard:** `app.py` ties everything together into an interactive web interface.
+```directory
+Week1-Regression_Project/
+│
+├── data/
+│   ├── housing.csv                  # Raw synthetic housing data
+│   └── cleaned_housing.csv          # Preprocessed housing dataset
+│
+├── models/
+│   ├── linear_regression.pkl        # Baseline model pipeline
+│   ├── random_forest.pkl            # Tuned champion model pipeline
+│   ├── metrics.json                 # Training & testing evaluation metrics
+│   └── feature_importances.csv      # Extracted feature driver weights
+│
+├── notebooks/
+│   ├── feature_importance.png       # Importance plots (Matplotlib)
+│   ├── linear_regression_actual_vs_pred.png
+│   ├── linear_regression_residuals.png
+│   ├── random_forest_actual_vs_pred.png
+│   └── random_forest_residuals.png
+│
+├── src/
+│   ├── preprocessing.py             # Data imputation & IQR filtering
+│   ├── feature_engineering.py       # ColumnTransformers & custom ratios
+│   ├── train.py                     # Pipelines & GridSearchCV
+│   ├── evaluate.py                  # Evaluation metrics & diagnostic plots
+│   ├── explainability.py            # Feature importance extraction
+│   ├── llm_insights.py              # Groq API integration
+│   └── generate_data.py             # Karachi dataset generator
+│
+├── app.py                           # Premium Streamlit application code
+├── requirements.txt                 # Dependencies
+├── .env                             # Active API credentials
+├── plan.md                          # Design document
+└── README.md                        # Documentation
+```
 
 ---
 
-## 🚀 Installation & Usage
+## 🛠️ Installation & Execution
 
 ### 1. Prerequisites
-Ensure you have Python installed. You will also need a **Groq API Key** (Free tier).
+- **Python 3.11+** installed.
+- (Optional) A **Groq API Key** for real-time LLM commentary (the app works natively in offline/fallback mode without it).
 
 ### 2. Setup
+Clone the repository, navigate to the project directory, and install dependencies:
 ```bash
-# Clone the repository
-git clone <repo-url>
 cd Week1-Regression_Project
-
-# Install dependencies
 pip install -r requirements.txt
 ```
 
-### 3. Configuration
+### 3. API Configuration (Optional)
 Create a `.env` file in the root directory:
 ```env
-GROQ_API_KEY=your_actual_groq_api_key
+GROQ_API_KEY=gsk_your_actual_key_here
 ```
 
 ### 4. Running the Pipeline
-You can re-run the entire pipeline to generate new models:
+To re-run the data preparation, training, evaluation, and explanation sequences:
 ```bash
-# 1. Generate Data
+# 1. Generate data
 python src/generate_data.py
 
-# 2. Train and Evaluate
+# 2. Train baseline and champion models
 python src/train.py
+
+# 3. Evaluate and run overfitting checks
 python src/evaluate.py
+
+# 4. Extract feature importances
 python src/explainability.py
 ```
 
-### 5. Launch the App
+### 5. Launch the Streamlit Portal
+Start the dashboard locally:
 ```bash
 streamlit run app.py
 ```
 
 ---
 
-## 📈 Model Performance
-- **Best Model:** Random Forest Regressor
-- **R² Score:** **0.97+** (Excellent fit for the Karachi housing market data)
-- **Top Driver:** Property Area (Sq Yards) followed by Location (DHA/Clifton).
+## 📊 Model Performance Summary
 
----
-
-## 🤖 AI Property Advisor
-The integrated AI Advisor doesn't just give a price; it explains **why** the price is what it is, provides market context for the specific Karachi neighborhood, and gives investment recommendations for the startup.
-
----
-*Developed for Agentic Hackathon - Week 1 Assignment.*
+Based on Karachi pricing trends:
+- **Baseline (Linear Regression):** $R^2 \approx 87.5\%$ (Test Set)
+- **Champion (Random Forest):** $R^2 \approx 97.8\%$ (Test Set)
+- **Generalization:** Both models satisfy the overfitting checks ($\text{Train } R^2 - \text{Test } R^2 < 5\%$), indicating robust generalization across Karachi's real estate configurations.
+- **Top Valuation Drivers:** Plot area (Sq Yards) carries the highest correlation weight, followed immediately by location premiums (DHA, Clifton) and property architectural structure (House vs. Flat).
