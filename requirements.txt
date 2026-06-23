@@ -1,0 +1,17 @@
+joblib
+pandas
+numpy
+scikit-learn
+imbalanced-learn
+xgboost
+lightgbm
+shap
+matplotlib
+seaborn
+fastapi
+uvicorn
+streamlit
+pyyaml
+requests
+groq
+
