@@ -1,0 +1,20 @@
+{
+  "confusion_matrix": [
+    [
+      53,
+      72
+    ],
+    [
+      8,
+      67
+    ]
+  ],
+  "classification_report": "              precision    recall  f1-score   support\n\n           0       0.87      0.42      0.57       125\n           1       0.48      0.89      0.63        75\n\n    accuracy                           0.60       200\n   macro avg       0.68      0.66      0.60       200\nweighted avg       0.72      0.60      0.59       200\n",
+  "roc_auc": 0.71392,
+  "pr_auc": 0.6171881826862295,
+  "precision_churn": 0.48201438848920863,
+  "recall_churn": 0.8933333333333333,
+  "f1": 0.6261682242990654,
+  "threshold": 0.3453255147389142,
+  "threshold_metric_value": 0.6261682242990654
+}
