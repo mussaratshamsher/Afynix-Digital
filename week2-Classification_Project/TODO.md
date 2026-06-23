@@ -13,3 +13,14 @@ rea# TODO - Week 2 Classification Project
 - [ ] Start API with `uvicorn week2-Classification_Project.app.api:app --reload --port 8000`
 - [ ] Call `POST /predict` and confirm response.
 
+## Step 4: Remote API testing with Streamlit
+- [ ] Set default backend URL in `app/dashboard.py` to `https://mussarat123shamsher-classification-project.hf.space`.
+- [ ] Ensure Streamlit uses that URL for `/` and `/predict_batch`.
+
+## Step 5: Upload behavior comparison helper
+- [x] Added `data/api_upload_demo.py` which generates:
+  - `demo_upload.csv`
+  - `demo_payload.json` (same data formatted for POST /predict_batch)
+
+https://mussarat123shamsher-classification-project.hf.space
+
