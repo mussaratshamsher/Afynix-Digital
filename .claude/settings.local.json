@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "Bash(streamlit version)",
+      "Bash(pip install 'starlette==0.37.2')",
+      "Bash(python -m venv .venv)",
+      "Bash(pip install 'starlette==0.40.6')",
+      "Bash(pip install streamlit==1.40.0)",
+      "Bash(streamlit run week2-Classification_Project/app/dashboard.py)",
+      "Bash(streamlit run app/dashboard.py)",
+      "Bash(python -c \"import sklearn; print\\(sklearn.__version__\\)\")",
+      "Bash(python -c \"import py_compile; py_compile.compile\\(''d:/Agentic-Hackthon/Afynix-Digital/week2-Classification_Project/app/dashboard.py'', doraise=True\\); print\\(''OK''\\)\")"
+    ]
+  }
+}

@@ -13,12 +13,26 @@ from src.features.build_features import build_features
 
 st.set_page_config(page_title="Churn Dashboard", layout="wide")
 
-st.title("Customer Churn Risk Dashboard")
+# Required columns expected by the churn model (must be defined before use)
+REQUIRED_COLUMNS = [
+    "gender", "SeniorCitizen", "Partner", "Dependents", "tenure",
+    "PhoneService", "MultipleLines", "InternetService", "OnlineSecurity",
+    "OnlineBackup", "DeviceProtection", "TechSupport", "StreamingTV",
+    "StreamingMovies", "Contract", "PaperlessBilling", "PaymentMethod",
+    "MonthlyCharges", "TotalCharges"
+]
+
+st.title("Customer Churn Prediction Dashboard")
 
 # Configure backend API URL connection
-st.sidebar.header("Backend API Connection")
+st.sidebar.header("Backend")
 default_api_url = os.getenv("API_URL", "https://mussarat123shamsher-classification-project.hf.space")
-api_url = st.sidebar.text_input("FastAPI Base URL", value=default_api_url)
+api_url = st.sidebar.text_input(
+    "FastAPI Base URL",
+    value=default_api_url,
+    help="Base URL of the FastAPI backend. Leave default to use the HF Space backend."
+)
+
 
 # Test API connection
 api_connected = False
@@ -69,14 +83,49 @@ else:
     except Exception:
         st.info("Running mode: **Remote API** (Threshold: Unknown)")
 
+# Show required columns in sidebar
+with st.sidebar.expander("Required CSV Columns", expanded=False):
+    st.markdown("Your CSV must include these columns:")
+    st.code(", ".join(REQUIRED_COLUMNS))
+    st.markdown("See `data/demo_upload.csv` for reference format.")
+
+# Link to demo sample file for download
+demo_csv_path = os.path.join(os.path.dirname(__file__), "..", "data", "demo_upload.csv")
+if os.path.exists(demo_csv_path):
+    with open(demo_csv_path, "rb") as f:
+        st.sidebar.download_button(
+            label="Download Sample CSV Template",
+            data=f,
+            file_name="sample_customers.csv",
+            mime="text/csv",
+            help="Download a sample CSV file with the correct columns"
+        )
+
 uploaded = st.file_uploader(
-    "Upload a CSV of customer rows (must match training columns)",
+    "Upload a CSV with customer data (all 19 columns required)",
     type=["csv"],
     accept_multiple_files=False
 )
 
 if uploaded is not None:
-    df = pd.read_csv(uploaded)
+    # Streamlit file objects sometimes need a more forgiving CSV parser.
+    # Try a standard read first; if it fails, fall back to a delimiter/engine fallback.
+    try:
+        df = pd.read_csv(uploaded)
+    except Exception:
+        try:
+            df = pd.read_csv(uploaded, sep=";", engine="python")
+        except Exception as e:
+            st.error(f"Failed to parse CSV file: {e}")
+            st.stop()
+
+    # Validate required columns
+    uploaded_cols = set(df.columns)
+    missing_cols = set(REQUIRED_COLUMNS) - uploaded_cols
+    if missing_cols:
+        st.error(f"Missing required columns: {sorted(missing_cols)}")
+        st.info(f"Please upload a CSV with these columns: {REQUIRED_COLUMNS}")
+        st.stop()
 
     # Clean Churn columns if they exist in the raw test CSV
     df_to_predict = df.copy()
@@ -89,8 +138,19 @@ if uploaded is not None:
         records = df_to_predict.to_dict(orient="records")
         try:
             with st.spinner("Requesting predictions from API..."):
-                response = requests.post(f"{api_url}/predict_batch", json={"data": records}, timeout=10)
-                response.raise_for_status()
+                response = requests.post(
+                    f"{api_url}/predict_batch",
+                    json={"data": records},
+                    timeout=10
+                )
+                # On HF Spaces you often get a plain 500 page. Surface the body for debugging.
+                if response.status_code != 200:
+                    try:
+                        err_payload = response.json()
+                    except Exception:
+                        err_payload = response.text
+                    raise RuntimeError(f"Backend {response.status_code}: {err_payload}")
+
                 res_data = response.json()
             
             out = df.copy()
