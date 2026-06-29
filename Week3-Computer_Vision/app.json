@@ -1,0 +1,14 @@
+{
+  "name": "Smart Attendance System",
+  "description": "Face recognition-based attendance tracking system using OpenCV",
+  "source": "https://github.com/yourusername/Afynix-Digital/tree/main/Week3-Computer_Vision",
+  "appType": "streamlit",
+  "likes": 0,
+  "tags": [
+    "computer-vision",
+    "face-detection",
+    "attendance",
+    "opencv"
+  ],
+  "pipeline_tag": "streamlit"
+}

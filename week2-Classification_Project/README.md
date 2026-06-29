@@ -1,32 +1,34 @@
 ---
-title: Customer Churn Prediction
+title: Customer Churn Prediction API
 emoji: 📊
 colorFrom: blue
 colorTo: green
-sdk: streamlit
-sdk_version: 1.46.1
-app_file: app/dashboard.py
+sdk: docker
+app_file: Dockerfile
+python_version: "3.10"
 pinned: false
 ---
 
-# 📊 Customer Churn Prediction
+# 📊 Customer Churn Prediction API
 
-An end-to-end Machine Learning Classification project for predicting customer churn using historical customer behavior data.
+FastAPI-based machine learning service for predicting customer churn. Deploys as an API (not dashboard).
 
-## ✨ Features
+## API Endpoints
 
-- 📂 Data Loading & Validation
-- 🧹 Data Cleaning & Preprocessing
-- 🔧 Feature Engineering
-- 🏷️ Categorical Encoding
-- ⚖️ Class Imbalance Handling (SMOTE)
-- 🤖 Machine Learning Classification
-- 📈 ROC-AUC & PR-AUC Evaluation
-- 🎯 Threshold Optimization
-- 🔍 SHAP Explainability
-- ⚡ FastAPI API
-- 🎨 Streamlit Dashboard
-- 🧠 Groq-powered AI Insights (Optional)
+| Endpoint | Method | Description |
+|---------|--------|-------------|
+| `/` | GET | Health check |
+| `/predict` | POST | Predict single customer |
+| `/predict_batch` | POST | Predict multiple customers (JSON) |
+| `/predict_csv` | POST | Upload CSV file for batch prediction |
+
+## Features
+
+- FastAPI REST API
+- CSV file upload support
+- Batch prediction
+- CORS enabled for cross-origin integration
+- Docker deployment
 
 ## 📁 Project Structure
 

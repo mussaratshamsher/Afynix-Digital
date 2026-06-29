@@ -1,0 +1,21 @@
+[server]
+port = 8501
+headless = true
+enableCORS = false
+
+[browser]
+gatherUsageStats = false
+
+# Native Streamlit Dark/Light theme
+# Default to light, users can toggle to dark via Settings > Theme
+[theme]
+base = "light"
+primaryColor = "#00E676"
+backgroundColor = "#FFFFFF"
+secondaryBackgroundColor = "#F0F2F6"
+textColor = "#31333F"
+font = "sans serif"
+
+[runner]
+magicEnabled = true
+fastReruns = true
