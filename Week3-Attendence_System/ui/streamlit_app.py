@@ -1,14 +1,22 @@
 """Enhanced Streamlit UI for Smart Attendance System."""
 
 import streamlit as st
-import cv2
+import subprocess
+import sys
+
+# Try importing cv2, install if not found
+try:
+    import cv2
+except ImportError:
+    subprocess.check_call([sys.executable, "-m", "pip", "install", "opencv-python-headless", "--quiet"])
+    import cv2
+
 import numpy as np
 import io
 from pathlib import Path
 from datetime import datetime, date
 import pandas as pd
 from PIL import Image
-import sys
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from src.face_detector import FaceDetector
