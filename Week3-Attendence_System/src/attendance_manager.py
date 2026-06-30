@@ -389,7 +389,8 @@ class AttendanceManager:
         df = pd.DataFrame(all_records)
 
         # Filter to date range
-        df = df[(df['Date'] >= start_date) & (df['Date'] <= end_date)]
+        if not df.empty and 'Date' in df.columns:
+            df = df[(df['Date'] >= start_date) & (df['Date'] <= end_date)]
 
         if df.empty:
             return df
