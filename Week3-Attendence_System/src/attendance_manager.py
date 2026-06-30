@@ -421,7 +421,8 @@ class AttendanceManager:
             # Export date range
             all_records = self.get_all_attendance()
             df = pd.DataFrame(all_records)
-            df = df[(df['Date'] >= start_date) & (df['Date'] <= end_date)]
+            if not df.empty and 'Date' in df.columns:
+                df = df[(df['Date'] >= start_date) & (df['Date'] <= end_date)]
             df.to_csv(output_file, index=False)
         else:
             # Copy file
