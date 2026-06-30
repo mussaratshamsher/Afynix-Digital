@@ -239,7 +239,9 @@ class AttendanceManager:
                 "unique_persons": 0,
                 "daily_average": 0,
                 "most_regular": [],
-                "last_7_days": {}
+                "last_7_days": {},
+                "first_arrival": None,
+                "late_arrivals": []
             }
 
         # Convert to DataFrame for easier analysis
