@@ -1,5 +1,6 @@
 """Enhanced Streamlit UI for Smart Attendance System."""
 
+import sys
 import streamlit as st
 import numpy as np
 import io
@@ -606,28 +607,7 @@ class StreamlitAttendanceApp:
             )
 
         with col4:
-            # Lighting info
-            if st.button("Test Camera Lighting"):
-                try:
-                    if self.camera.start():
-                        success, frame = self.camera.get_frame()
-                        if success and frame is not None:
-                            lighting = self.face_detector.assess_lighting_conditions(frame)
-                            st.write(f"**Condition:** {lighting['condition']}")
-                            st.write(f"**Mean Brightness:** {lighting['mean_brightness']:.1f}")
-                            st.write(f"**Std Deviation:** {lighting['std_deviation']:.1f}")
-                            st.write(f"**Recommendation:** {lighting['recommendation']}")
-                        else:
-                            st.error("Could not read frame")
-                    else:
-                        st.error("Could not start camera")
-                except Exception as e:
-                    st.error(f"Error: {e}")
-                finally:
-                    try:
-                        self.camera.stop()
-                    except:
-                        pass
+            st.info("Camera test available in desktop app")
 
         st.markdown("---")
 
