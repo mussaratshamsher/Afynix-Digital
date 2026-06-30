@@ -566,17 +566,41 @@ class StreamlitAttendanceApp:
                         start_date=start.strftime('%Y-%m-%d'),
                         end_date=end.strftime('%Y-%m-%d')
                     )
-                    st.success(f"Exported to: {output}")
+                    with open(output, 'r') as f:
+                        st.download_button(
+                            "Download CSV",
+                            f.read(),
+                            f"attendance_{start}_{end}.csv",
+                            "text/csv",
+                            use_container_width=True
+                        )
+                    st.success("✓ Exported!")
 
             elif export_format == "JSON":
                 if st.button("Export JSON"):
                     output = self.attendance_manager.export_json(include_stats=include_stats)
-                    st.success(f"Exported to: {output}")
+                    with open(output, 'r') as f:
+                        st.download_button(
+                            "Download JSON",
+                            f.read(),
+                            "attendance.json",
+                            "application/json",
+                            use_container_width=True
+                        )
+                    st.success("✓ Exported!")
 
             elif export_format == "Excel":
                 if st.button("Export Excel"):
                     output = self.attendance_manager.export_excel()
-                    st.success(f"Exported to: {output}")
+                    with open(output, 'rb') as f:
+                        st.download_button(
+                            "Download Excel",
+                            f.read(),
+                            "attendance.xlsx",
+                            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                            use_container_width=True
+                        )
+                    st.success("✓ Exported!")
 
     def statistics_page(self):
         """View statistics."""
