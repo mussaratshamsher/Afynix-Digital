@@ -24,7 +24,8 @@
       "Bash(python -m py_compile d:/Agentic-Hackthon/Afynix-Digital/Week3-Computer_Vision/ui/streamlit_app.py)",
       "Bash(python -c \"import sys; sys.path.insert\\(0, ''.''\\); from ui.streamlit_app import StreamlitAttendanceApp; print\\(''UI imports OK''\\)\")",
       "Bash(python -c \"from src.camera import Camera; from src.face_detector import FaceDetector; from src.face_recognizer import FaceRecognizer; from src.attendance_manager import AttendanceManager; print\\(''All imports successful''\\)\")",
-      "Bash(xxd)"
+      "Bash(xxd)",
+      "Bash(pip install -r requirements.txt)"
     ]
   }
 }
