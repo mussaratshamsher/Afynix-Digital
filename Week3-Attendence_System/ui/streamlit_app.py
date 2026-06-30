@@ -3,14 +3,14 @@
 import streamlit as st
 import cv2
 import numpy as np
+import io
 from pathlib import Path
 from datetime import datetime, date
 import pandas as pd
-
+from PIL import Image
 import sys
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from src.camera import Camera
 from src.face_detector import FaceDetector
 from src.face_recognizer import FaceRecognizer
 from src.attendance_manager import AttendanceManager
@@ -21,8 +21,7 @@ class StreamlitAttendanceApp:
 
     def __init__(self):
         """Initialize the app."""
-        # Initialize components
-        self.camera = Camera()
+        # Initialize components (no Camera - use browser input)
         self.face_detector = FaceDetector()
         self.face_recognizer = FaceRecognizer()
         self.attendance_manager = AttendanceManager()
@@ -31,7 +30,7 @@ class StreamlitAttendanceApp:
         if 'detection_mode' not in st.session_state:
             st.session_state.detection_mode = 'auto'
         if 'confidence_threshold' not in st.session_state:
-            st.session_state.confidence_threshold = 30
+            st.session_state.confidence_threshold = 60  # 60% for easier attendance recognition
         if 'equalize_histogram' not in st.session_state:
             st.session_state.equalize_histogram = True
         if 'attendance_running' not in st.session_state:
@@ -42,27 +41,56 @@ class StreamlitAttendanceApp:
             st.session_state.theme = 'light'
 
     def _inject_theme_css(self):
-        """Inject custom theme CSS."""
+        """Inject custom theme CSS with animations."""
         is_dark = st.session_state.theme == 'dark'
         bg = "#0E1117" if is_dark else "#FFFFFF"
         sidebar_bg = "#262730" if is_dark else "#F0F2F6"
         text = "#FAFAFA" if is_dark else "#31333F"
         primary = "#00E676"
         secondary = "#31333F" if is_dark else "#F0F2F6"
+        header_bg = "#1A1A1A" if is_dark else "#FFFFFF"
+        header_text = "#FFFFFF" if is_dark else "#31333F"
 
         st.markdown(f"""
             <style>
-            /* Main app background */
+            /* Main app background with animation */
             .stApp {{
                 background-color: {bg};
+                animation: fadeIn 0.5s ease-in;
+            }}
+            @keyframes fadeIn {{
+                from {{ opacity: 0; }}
+                to {{ opacity: 1; }}
+            }}
+            @keyframes slideIn {{
+                from {{ transform: translateY(-20px); opacity: 0; }}
+                to {{ transform: translateY(0); opacity: 1; }}
+            }}
+            @keyframes pulse {{
+                0% {{ transform: scale(1); }}
+                50% {{ transform: scale(1.05); }}
+                100% {{ transform: scale(1); }}
+            }}
+            /* Header/Title area */
+            header[data-testid="stHeader"] {{
+                background-color: {header_bg} !important;
+            }}
+            header[data-testid="stHeader"] * {{
+                color: {header_text} !important;
+            }}
+            /* Main title styling */
+            h1 {{
+                color: {text} !important;
+                animation: slideIn 0.5s ease-out;
             }}
             /* Text colors */
             .stMarkdown, .stText, p, span, li, div[data-testid="stMetricValue"] {{
                 color: {text} !important;
             }}
-            /* Headings */
-            h1, h2, h3, h4 {{
+            /* Headings with animation */
+            h2, h3, h4 {{
                 color: {text} !important;
+                animation: slideIn 0.4s ease-out;
             }}
             /* Sidebar */
             section[data-testid="stSidebar"] {{
@@ -71,28 +99,60 @@ class StreamlitAttendanceApp:
             section[data-testid="stSidebar"] * {{
                 color: {text} !important;
             }}
-            /* Buttons */
+            /* Buttons with hover animation */
             .stButton > button {{
                 background-color: {primary};
                 color: #000000;
                 border: none;
+                transition: all 0.3s ease;
+                animation: slideIn 0.3s ease-out;
             }}
             .stButton > button:hover {{
                 background-color: #00C853;
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(0,0,0,0.3);
             }}
-            /* Cards/containers */
+            /* Cards with animation */
             div[data-testid="stMetricCard"] {{
                 background-color: {sidebar_bg};
                 color: {text};
+                border-radius: 10px;
+                animation: slideIn 0.4s ease-out;
             }}
             /* Input fields */
             .stTextInput > div > div > input {{
                 background-color: {secondary};
                 color: {text};
+                border-radius: 5px;
             }}
             /* Dataframes */
             .stDataFrame {{
                 background-color: {bg};
+            }}
+            /* Success/Error messages with animation */
+            .stSuccess, .stError {{
+                animation: slideIn 0.3s ease-out, pulse 0.3s ease-out;
+            }}
+            /* Video placeholder with border */
+            div[data-testid="stImage"] {{
+                border-radius: 10px;
+                overflow: hidden;
+            }}
+            /* Radio buttons */
+            div[data-testid="stRadio"] > label {{
+                padding: 5px 10px;
+                border-radius: 5px;
+                transition: all 0.2s ease;
+            }}
+            div[data-testid="stRadio"] > label:hover {{
+                background-color: {secondary};
+            }}
+            /* Tabs with animation */
+            .stTabs [data-baseweb="tab"] {{
+                transition: all 0.2s ease;
+            }}
+            .stTabs [data-baseweb="tab"]:hover {{
+                background-color: {secondary};
             }}
             </style>
         """, unsafe_allow_html=True)
@@ -161,94 +221,42 @@ class StreamlitAttendanceApp:
                     st.write(f"  - {p}")
 
     def home_page(self):
-        """Home page with start/stop buttons and live view."""
+        """Home page with camera input for attendance."""
         col1, col2 = st.columns([3, 1])
 
         with col1:
-            st.subheader("Live Camera Feed")
+            st.subheader("Take Attendance")
 
-            # Video placeholder
-            video_placeholder = st.empty()
-            status_placeholder = st.empty()
+            # Camera input
+            camera_img = st.camera_input("Take photo for attendance", help="Capture face for attendance")
 
-            # Controls
-            col_start, col_stop = st.columns(2)
-
-            with col_start:
-                if st.button("Start Attendance", type="primary",
-                          disabled=st.session_state.attendance_running):
-                    if self.camera.start():
-                        st.session_state.attendance_running = True
-                        status_placeholder.success("Attendance system started!")
-                    else:
-                        st.error("Could not start camera")
-
-            with col_stop:
-                if st.button("Stop Attendance",
-                          disabled=not st.session_state.attendance_running):
-                    if st.session_state.attendance_running:
-                        self.camera.stop()
-                        st.session_state.attendance_running = False
-                        status_placeholder.info("Attendance system stopped!")
-
-            # Live video loop
-            if st.session_state.attendance_running:
+            if st.button("Mark Attendance", type="primary", disabled=not camera_img):
                 try:
-                    while st.session_state.attendance_running:
-                        success, frame = self.camera.get_frame()
-                        if success:
-                            # Assess lighting
-                            lighting = self.face_detector.assess_lighting_conditions(frame)
+                    bytes_data = camera_img.getvalue()
+                    img = Image.open(io.BytesIO(bytes_data))
+                    frame = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
 
-                            # Detect and recognize faces
-                            faces = self.face_detector.detect_faces(frame)
-                            display_frame = self.face_detector.draw_faces(faces, frame.copy())
+                    # Detect and recognize
+                    faces = self.face_detector.detect_faces(frame)
 
-                            # If we have registered faces, do recognition
-                            names = []
-                            confidences = []
-                            if self.face_recognizer.has_registered_faces():
-                                gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-                                results = self.face_recognizer.recognize_faces(gray, faces)
+                    if len(faces) == 0:
+                        st.error("No face detected")
+                    else:
+                        results = self.face_recognizer.recognize_faces(frame, faces)
 
-                                for result in results:
-                                    names.append(result['name'])
-                                    confidences.append(result['confidence'])
-
-                                    # Mark attendance
-                                    marked = self.attendance_manager.mark_attendance(result['name'])
-                                    if marked:
-                                        status_placeholder.success(f"Attendance marked: {result['name']}")
-
-                                # Draw with confidence colors
-                                display_frame = self.face_detector.draw_faces_with_confidence(
-                                    faces, display_frame, confidences
-                                )
-
-                                # Add labels
-                                from src.utils import draw_label
-                                for result in results:
-                                    display_frame = draw_label(
-                                        display_frame,
-                                        f"{result['name']} ({result['confidence']:.0f}%)",
-                                        (result['box'][0], result['box'][1] - 10),
-                                        bg_color=(0, 255, 0) if result['confidence'] > 70 else (0, 255, 255)
-                                    )
-
-                            # Add info overlay
-                            from src.utils import add_status_bar
-                            info_text = f"Detected: {len(faces)} faces | Lighting: {lighting['condition']} | Press Stop to quit"
-                            display_frame = add_status_bar(display_frame, info_text, "bottom")
-
-                            # Convert for display
-                            display_frame = cv2.cvtColor(display_frame, cv2.COLOR_BGR2RGB)
-
-                            # Display frame
-                            video_placeholder.image(display_frame, channels="RGB")
+                        if results:
+                            for result in results:
+                                self.attendance_manager.mark_attendance(result['name'])
+                            names = ", ".join(r['name'] for r in results)
+                            st.success(f"Marked: {names}")
+                        else:
+                            st.warning("No matching faces found")
 
                 except Exception as e:
                     st.error(f"Error: {e}")
-                    st.session_state.attendance_running = False
+
+            st.markdown("---")
+            st.info("Tip: Register faces first in the Register page")
 
         with col2:
             st.subheader("Today's Attendance")
@@ -261,20 +269,11 @@ class StreamlitAttendanceApp:
             else:
                 st.info("No attendance recorded today")
 
-            # Quick stats
-            st.markdown("---")
-            st.subheader("Quick Stats")
-            stats = self.attendance_manager.get_statistics(days=7)
-            if stats:
-                st.write(f"Week Total: {stats['total_attendance']}")
-                st.write(f"Daily Average: {stats['daily_average']}")
-                st.write(f"Unique Persons: {stats['unique_persons']}")
-
     def register_page(self):
-        """Register a new face with enhanced features."""
+        """Register a new face using browser camera input."""
         st.subheader("Register New Person")
 
-        col1, col2, col3 = st.columns([2, 1, 1])
+        col1, col2 = st.columns([2, 1])
 
         with col1:
             name = st.text_input("Enter Name", key="reg_name_input")
@@ -285,52 +284,56 @@ class StreamlitAttendanceApp:
             multiple = st.checkbox("Add Multiple Samples", value=True,
                             help="Add more samples for better recognition")
 
-        with col3:
-            st.write("")
-            st.write("")
-            use_camera = st.checkbox("Use Live Camera", value=True)
+        st.markdown("---")
 
-        # Capture area
-        col_capture, col_preview = st.columns(2)
+        # Use browser camera input (works on Streamlit Cloud)
+        col_upload, col_preview = st.columns(2)
 
-        with col_capture:
-            if st.button("Capture & Register", type="primary"):
+        with col_upload:
+            st.subheader("Take Photo")
+            camera_img = st.camera_input("Take a photo", help="Use your camera to capture face")
+
+            if st.button("Register", type="primary", disabled=not camera_img):
                 if not name:
                     st.error("Please enter a name")
-                elif use_camera:
-                    # Start camera
-                    if self.camera.start():
-                        st.info("Looking for face...")
+                else:
+                    try:
+                        # Read image from camera input
+                        bytes_data = camera_img.getvalue()
+                        img = Image.open(io.BytesIO(bytes_data))
+                        frame = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
 
-                        # Get frame
-                        success, frame = self.camera.get_frame()
-                        if success:
-                            # Detect face
-                            faces = self.face_detector.detect_faces(frame)
+                        # Detect faces
+                        faces = self.face_detector.detect_faces(frame)
 
-                            if len(faces) == 0:
-                                st.error("No face detected. Please try again.")
+                        if len(faces) == 0:
+                            st.error("No face detected. Please position your face in the camera.")
+                        else:
+                            face_box = faces[0]
+                            # Register
+                            success = self.face_recognizer.register_face_box(
+                                frame, face_box, name,
+                                add_multiple=multiple
+                            )
+
+                            if success:
+                                count = self.face_recognizer.get_registration_count(name)
+                                st.success(f"Registered: {name} ({count} samples)")
                             else:
-                                # Get first face box
-                                face_box = faces[0]
+                                st.error("Failed to register face")
 
-                                # Register
-                                success = self.face_recognizer.register_face_box(
-                                    frame, face_box, name,
-                                    add_multiple=multiple
-                                )
+                    except Exception as e:
+                        st.error(f"Error: {e}")
 
-                                if success:
-                                    st.success(f"Successfully registered: {name}")
-                                    # Feedback
-                                    count = self.face_recognizer.get_registration_count(name)
-                                    st.info(f"Total samples for {name}: {count}")
-                                else:
-                                    st.error("Failed to register face")
-
-                        self.camera.stop()
-                    else:
-                        st.error("Could not start camera")
+        with col_preview:
+            st.subheader("Registered Faces")
+            names = self.face_recognizer.get_registered_names()
+            if names:
+                for n in names:
+                    count = self.face_recognizer.get_registration_count(n)
+                    st.write(f"- {n}: {count} samples")
+            else:
+                st.info("No users registered")
 
         with col_preview:
             st.subheader("Preview")
@@ -344,7 +347,7 @@ class StreamlitAttendanceApp:
                     face_img = cv2.cvtColor(face_img, cv2.COLOR_GRAY2RGB)
                 else:
                     face_img = cv2.cvtColor(face_img, cv2.COLOR_BGR2RGB)
-                st.image(face_img, caption=f"{name}", use_container_width=True)
+                st.image(face_img, caption=f"{name}", width='stretch')
             else:
                 st.info("No preview available")
 
@@ -382,10 +385,9 @@ class StreamlitAttendanceApp:
                         st.error("Failed to remove person")
 
             if st.button("Clear All"):
-                if st.confirm("Are you sure you want to clear all registered faces?"):
-                    self.face_recognizer.clear_all()
-                    st.success("Cleared all faces")
-                    st.rerun()
+                self.face_recognizer.clear_all()
+                st.success("Cleared all faces")
+                st.rerun()
 
     def attendance_page(self):
         """View attendance records with filters."""
@@ -610,38 +612,44 @@ class StreamlitAttendanceApp:
         with col4:
             # Lighting info
             if st.button("Test Camera Lighting"):
-                if self.camera.start():
-                    success, frame = self.camera.get_frame()
-                    if success:
-                        lighting = self.face_detector.assess_lighting_conditions(frame)
-                        st.write(f"**Condition:** {lighting['condition']}")
-                        st.write(f"**Mean Brightness:** {lighting['mean_brightness']:.1f}")
-                        st.write(f"**Std Deviation:** {lighting['std_deviation']:.1f}")
-                        st.write(f"**Recommendation:** {lighting['recommendation']}")
-                    self.camera.stop()
-                else:
-                    st.error("Could not start camera")
+                try:
+                    if self.camera.start():
+                        success, frame = self.camera.get_frame()
+                        if success and frame is not None:
+                            lighting = self.face_detector.assess_lighting_conditions(frame)
+                            st.write(f"**Condition:** {lighting['condition']}")
+                            st.write(f"**Mean Brightness:** {lighting['mean_brightness']:.1f}")
+                            st.write(f"**Std Deviation:** {lighting['std_deviation']:.1f}")
+                            st.write(f"**Recommendation:** {lighting['recommendation']}")
+                        else:
+                            st.error("Could not read frame")
+                    else:
+                        st.error("Could not start camera")
+                except Exception as e:
+                    st.error(f"Error: {e}")
+                finally:
+                    try:
+                        self.camera.stop()
+                    except:
+                        pass
 
         st.markdown("---")
 
         # Danger zone
         st.subheader("Data Management")
-        st.warning("These actions cannot be undone!")
 
         col_clear_att, col_clear_all = st.columns(2)
 
         with col_clear_att:
             if st.button("Clear Attendance Data"):
-                if st.confirm("Clear all attendance records?"):
-                    self.attendance_manager.clear_all()
-                    st.success("Cleared attendance data")
+                self.attendance_manager.clear_all()
+                st.success("Cleared attendance data")
 
         with col_clear_all:
             if st.button("Clear All Data"):
-                if st.confirm("Clear ALL data including registered faces?"):
-                    self.face_recognizer.clear_all()
-                    self.attendance_manager.clear_all()
-                    st.success("Cleared all data")
+                self.face_recognizer.clear_all()
+                self.attendance_manager.clear_all()
+                st.success("Cleared all data")
 
         # About
         st.markdown("---")

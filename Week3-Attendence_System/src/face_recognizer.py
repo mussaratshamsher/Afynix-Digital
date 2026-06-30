@@ -47,8 +47,8 @@ class FaceRecognizer:
         self.lbph_grid_x = 8
         self.lbph_grid_y = 8
 
-        # Recognition threshold (lower = stricter)
-        self.confidence_threshold = 30
+        # Recognition threshold (lower = easier matching)
+        self.confidence_threshold = 20
 
         # Loading statistics
         self.model_info: Dict = {}
@@ -63,6 +63,38 @@ class FaceRecognizer:
             grid_x=self.lbph_grid_x,
             grid_y=self.lbph_grid_y
         )
+
+    def _histogram_correlation(self, hist1: np.ndarray, hist2: np.ndarray) -> float:
+        """Compute histogram correlation without cv2.compareHist.
+
+        Uses Pearson correlation coefficient between histograms.
+
+        Args:
+            hist1: First histogram
+            hist2: Second histogram
+
+        Returns:
+            Correlation score (-1 to 1, higher = more similar)
+        """
+        # Normalize histograms
+        h1 = hist1.flatten()
+        h2 = hist2.flatten()
+
+        # Calculate means
+        mean1 = np.mean(h1)
+        mean2 = np.mean(h2)
+
+        # Calculate correlation
+        if np.std(h1) == 0 or np.std(h2) == 0:
+            return 0.0
+
+        covariance = np.mean((h1 - mean1) * (h2 - mean2))
+        std_product = np.std(h1) * np.std(h2)
+
+        if std_product == 0:
+            return 0.0
+
+        return covariance / std_product
 
     def _compute_histogram(self, gray_face: np.ndarray) -> np.ndarray:
         """Compute histogram of a grayscale face."""
@@ -138,8 +170,17 @@ class FaceRecognizer:
         # Extract face region
         face_roi = frame[y:y+h, x:x+w]
 
-        # Convert to grayscale
-        gray = cv2.cvtColor(face_roi, cv2.COLOR_BGR2GRAY)
+        # Handle empty/None ROI or grayscale input
+        if face_roi is None or face_roi.size == 0:
+            return False
+
+        # Convert to grayscale if needed (handle both BGR and grayscale frames)
+        if len(face_roi.shape) == 3 and face_roi.shape[2] == 3:
+            gray = cv2.cvtColor(face_roi, cv2.COLOR_BGR2GRAY)
+        elif len(face_roi.shape) == 2:
+            gray = face_roi
+        else:
+            return False
 
         # Preprocess face
         processed = self._preprocess_face(gray)
@@ -162,7 +203,18 @@ class FaceRecognizer:
         """Add augmented samples for more robust recognition."""
         x, y, w, h = face_box
         face_roi = frame[y:y+h, x:x+w]
-        gray = cv2.cvtColor(face_roi, cv2.COLOR_BGR2GRAY)
+
+        # Handle empty/None ROI
+        if face_roi is None or face_roi.size == 0:
+            return
+
+        # Convert to grayscale if needed
+        if len(face_roi.shape) == 3 and face_roi.shape[2] == 3:
+            gray = cv2.cvtColor(face_roi, cv2.COLOR_BGR2GRAY)
+        elif len(face_roi.shape) == 2:
+            gray = face_roi
+        else:
+            return
 
         # Get existing count for this person
         existing_count = sum(1 for n in self.names if n == name)
@@ -244,9 +296,9 @@ class FaceRecognizer:
             if base_name not in person_scores:
                 person_scores[base_name] = []
 
-            # Compare histograms (BHATTACHARYA - lower is more similar)
-            hist_score = cv2.compareHist(hist, stored_hist, cv2.HISTCMP_BHATTACHARYA)
-            hist_similarity = (1 - hist_score) * 100  # Convert to 0-100 similar
+            # Compare histograms using custom correlation (no cv2 dependency)
+            hist_score = self._histogram_correlation(hist, stored_hist)
+            hist_similarity = max(0, hist_score * 100)  # Convert to 0-100 similar
 
             # Compare features (correlation - higher is more similar)
             if np.std(features) > 0 and np.std(stored_features) > 0:
@@ -293,8 +345,17 @@ class FaceRecognizer:
             # Extract face
             face_roi = frame[y:y+h, x:x+w]
 
-            # Convert to grayscale
-            gray = cv2.cvtColor(face_roi, cv2.COLOR_BGR2GRAY)
+            # Handle empty/None ROI
+            if face_roi is None or face_roi.size == 0:
+                continue
+
+            # Convert to grayscale if needed
+            if len(face_roi.shape) == 3 and face_roi.shape[2] == 3:
+                gray = cv2.cvtColor(face_roi, cv2.COLOR_BGR2GRAY)
+            elif len(face_roi.shape) == 2:
+                gray = face_roi
+            else:
+                continue
 
             # Recognize
             name, confidence = self.recognize_face(gray)
@@ -338,8 +399,8 @@ class FaceRecognizer:
         ):
             base_name = name.rsplit('_', 1)[0] if '_' in name and name.split('_')[-1].isdigit() else name
 
-            hist_score = cv2.compareHist(hist, stored_hist, cv2.HISTCMP_BHATTACHARYA)
-            hist_similarity = (1 - hist_score) * 100
+            hist_score = self._histogram_correlation(hist, stored_hist)
+            hist_similarity = max(0, hist_score * 100)
 
             if np.std(features) > 0 and np.std(stored_features) > 0:
                 corr = np.corrcoef(features, stored_features)[0, 1]
@@ -441,7 +502,7 @@ class FaceRecognizer:
             self.face_histograms, self.face_images,
             self.names, self.registration_times
         ):
-            base = n.rsplit('_', 1)[0] if '_' in n[-1] and n[-1].isdigit() else n
+            base = n.rsplit('_', 1)[0] if '_' in n and n.split('_')[-1].isdigit() else n
             if base != name:
                 new_histograms.append(hist)
                 new_images.append(img)
@@ -498,3 +559,57 @@ class FaceRecognizer:
             threshold: New threshold (0-100, lower = more strict)
         """
         self.confidence_threshold = max(0, min(100, threshold))
+
+    def is_duplicate_face(self, face_image: np.ndarray, threshold: float = 70.0) -> Tuple[Optional[str], float]:
+        """Check if face already exists in database.
+
+        Args:
+            face_image: Face image to check
+            threshold: Similarity threshold to consider duplicate (0-100)
+
+        Returns:
+            Tuple of (existing_name, similarity) if duplicate found, else (None, 0.0)
+        """
+        if len(self.names) == 0:
+            return None, 0.0
+
+        # Preprocess face
+        processed = self._preprocess_face(face_image)
+        resized = cv2.resize(processed, (100, 100))
+        hist = self._compute_histogram(resized)
+        features = self._compute_features(resized)
+
+        # Compare with all stored faces
+        best_match = None
+        best_score = 0.0
+
+        for stored_hist, stored_features, name in zip(
+            self.face_histograms, self.face_images, self.names
+        ):
+            # Extract base name
+            base_name = name.rsplit('_', 1)[0] if '_' in name and name.split('_')[-1].isdigit() else name
+
+            # Compare histograms
+            hist_score = self._histogram_correlation(hist, stored_hist)
+            hist_similarity = max(0, hist_score * 100)
+
+            # Compare features
+            if np.std(features) > 0 and np.std(stored_features) > 0:
+                corr = np.corrcoef(features, stored_features)[0, 1]
+                if np.isnan(corr):
+                    corr = 0
+                features_similarity = (corr + 1) * 50
+            else:
+                features_similarity = 0
+
+            # Combined score
+            score = hist_similarity * 0.3 + features_similarity * 0.7
+
+            if score > best_score:
+                best_score = score
+                best_match = base_name
+
+        if best_match and best_score >= threshold:
+            return best_match, best_score
+
+        return None, 0.0

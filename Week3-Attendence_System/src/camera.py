@@ -29,9 +29,9 @@ class Camera:
         if not self.cap.isOpened():
             return False
 
-        # Set resolution for better performance
-        self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
-        self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+        # Set lower resolution for faster capture
+        self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 320)
+        self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 240)
 
         self.is_running = True
         return True

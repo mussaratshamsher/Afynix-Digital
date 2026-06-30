@@ -157,7 +157,7 @@ streamlit run ui/streamlit_app.py
 ## Project Structure
 
 ```
-Week3-Computer_Vision/
+Week3-Attendence_System/
 ├── app.py                    # Main CLI application
 ├── requirements.txt         # Python dependencies
 ├── README.md               # This file
