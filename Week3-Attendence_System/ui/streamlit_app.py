@@ -1,16 +1,6 @@
 """Enhanced Streamlit UI for Smart Attendance System."""
 
 import streamlit as st
-import subprocess
-import sys
-
-# Try importing cv2, install if not found
-try:
-    import cv2
-except ImportError:
-    subprocess.check_call([sys.executable, "-m", "pip", "install", "opencv-python-headless", "--quiet"])
-    import cv2
-
 import numpy as np
 import io
 from pathlib import Path
@@ -242,7 +232,7 @@ class StreamlitAttendanceApp:
                 try:
                     bytes_data = camera_img.getvalue()
                     img = Image.open(io.BytesIO(bytes_data))
-                    frame = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
+                    frame = np.array(img)[:, :, ::-1]  # RGB to BGR
 
                     # Detect and recognize
                     faces = self.face_detector.detect_faces(frame)
@@ -309,7 +299,7 @@ class StreamlitAttendanceApp:
                         # Read image from camera input
                         bytes_data = camera_img.getvalue()
                         img = Image.open(io.BytesIO(bytes_data))
-                        frame = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
+                        frame = np.array(img)[:, :, ::-1]  # RGB to BGR
 
                         # Detect faces
                         faces = self.face_detector.detect_faces(frame)
@@ -346,15 +336,13 @@ class StreamlitAttendanceApp:
         with col_preview:
             st.subheader("Preview")
             # Show registered face
-            import os
             face_path = Path(__file__).parent.parent / "data" / "faces" / f"{name}.jpg"
             if face_path.exists():
-                face_img = cv2.imread(str(face_path))
+                face_img = Image.open(face_path)
                 # Handle grayscale (1-channel) images
-                if len(face_img.shape) == 2 or face_img.shape[2] == 1:
-                    face_img = cv2.cvtColor(face_img, cv2.COLOR_GRAY2RGB)
-                else:
-                    face_img = cv2.cvtColor(face_img, cv2.COLOR_BGR2RGB)
+                if face_img.mode == 'L':
+                    face_img = face_img.convert('RGB')
+                face_img = np.array(face_img)
                 st.image(face_img, caption=f"{name}", width='stretch')
             else:
                 st.info("No preview available")

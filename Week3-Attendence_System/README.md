@@ -1,156 +1,115 @@
-# Smart Attendance System
+---
+title: Smart Attendance System
+emoji: 📸
+colorFrom: green
+colorTo: blue
+sdk: streamlit
+python_version: 3.11
+app_file: ui/streamlit_app.py
+pinned: false
+---
 
-A Smart Attendance System that automatically detects and recognizes faces using a laptop webcam and marks attendance in a CSV file with timestamps.
+# Smart Attendance System 📸
+
+A **face recognition-based attendance system** that uses your webcam to detect and recognize faces, automatically marking attendance with timestamps. Perfect for classrooms, offices, or any environment where you need to track attendance digitally.
+
+![Demo](https://img.shields.io/badge/Build-Passing-green) ![Python](https://img.shields.io/badge/Python-3.11-blue) ![Streamlit](https://img.shields.io/badge/Streamlit-1.37+-red)
 
 ---
 
 ## Features
 
-### Core Features
-- Real-time face detection using **Haar Cascade Classifier** with adaptive lighting compensation
-- Face recognition using histogram comparison and feature matching
-- Automatic attendance marking with timestamps
-- Duplicate attendance prevention (one entry per day per person)
-- CSV export and import
+### Core Functionality
+- **Real-time Face Detection** using Haar Cascade Classifier
+- **Face Recognition** with histogram comparison and feature matching
+- **Automatic Attendance Marking** with timestamps
+- **Duplicate Prevention** (one entry per day per person)
+- **Export Options**: CSV, JSON, Excel
 
-### Enhanced Detection
-- **Adaptive lighting compensation** using CLAHE (Contrast Limited Adaptive Histogram Equalization)
-- **Multi-scale detection** for better accuracy
-- **Detection modes**: Auto (balanced), Strict (fewer false positives), Fast (speed priority)
-- **Lighting condition assessment** with recommendations for testing
+### Detection
+- Adaptive lighting compensation with CLAHE
+- Multi-scale detection for better accuracy
+- Configurable detection modes (Auto/Strict/Fast)
+- Quality assessment for detected faces
 
-### Enhanced Recognition
-- **Multiple samples per person** for more robust recognition (base + augmented samples)
-- **Confidence scoring** (0-100%) with color-coded visual feedback
-- **Alternative match suggestions** when recognition confidence is uncertain
-- **Configurable confidence threshold** for different security levels
-- **Person management**: Add, remove, clear registered users
+### Recognition
+- Multiple samples per person for robust recognition
+- Confidence scoring (0-100%)
+- Configurable confidence threshold
+- Person management (add/remove/clear)
 
-### Enhanced Attendance Management
-- **Statistics dashboard**: Total attendance, daily average, unique persons, streak tracking
-- **Person-specific history**: Individual attendance patterns and statistics
-- **Export options**: CSV, JSON, Excel formats
-- **Date range filtering**: Filter and export specific date ranges
-- **Import capability**: Import attendance from external CSV files
-- **Report generation**: Generate pivot tables by date/person
-
----
-
-## Requirements
-
-### Python Version
-
-- Python 3.11+
-
-### Dependencies
-
-```
-opencv-python>=4.8.0
-pandas>=2.0.0
-streamlit>=1.28.0
-Pillow>=10.0.0
-numpy>=1.24.0
-```
-
----
-
-## Installation
-
-### 1. Navigate to Project
-
-```bash
-cd Week3-Computer_Vision
-```
-
-### 2. Create Virtual Environment (Recommended)
-
-```bash
-# Windows
-python -m venv .venv
-.venv\Scripts\activate
-
-# Linux/Mac
-python -m venv .venv
-source .venv/bin/activate
-```
-
-### 3. Install Dependencies
-
-```bash
-pip install -r requirements.txt
-```
+### Dashboard
+- Live camera input via browser
+- Registration with camera capture
+- View attendance records
+- Statistics and analytics
+- Date range filtering
 
 ---
 
 ## Usage
 
-### Command Line Interface
+### Home Page
+1. Take a photo using your browser camera
+2. Click "Mark Attendance"
+3. System detects and recognizes your face
+4. Attendance is automatically recorded
 
-#### Register a New Person
+### Register New Person
+1. Go to "Register Face" page
+2. Enter your name
+3. Take a photo with your camera
+4. Click "Register"
 
-```bash
-python app.py --register "YourName"
-```
+### View Attendance
+1. Go to "View Attendance" page
+2. Filter by date or person
+3. Export to CSV/JSON/Excel
 
-This will:
-- Open your webcam
-- Detect your face
-- Register you in the system (with multiple samples for better recognition)
-
-#### List Registered Users
-
-```bash
-python app.py --list
-```
-
-#### Run Attendance System
-
-```bash
-python app.py
-```
-
-Then:
-- Press `q` to quit
-- Press `s` to toggle video display
+### Statistics
+1. Go to "Statistics" page
+2. View attendance analytics
+3. See daily trends and regular attendees
 
 ---
 
-### Streamlit Dashboard
+## Installation
 
-#### Run the Dashboard
+### Local Deployment
 
 ```bash
+# Clone the repository
+git clone https://github.com/yourusername/Afynix-Digital.git
+cd Week3-Attendence_System
+
+# Create virtual environment
+python -m venv .venv
+source .venv/bin/activate  # Linux/Mac
+.venv\Scripts\activate   # Windows
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Run the app
 streamlit run ui/streamlit_app.py
 ```
 
-#### Dashboard Pages
+### Hugging Face Deployment
 
-1. **Home**: Live camera feed with real-time face detection and recognition
-2. **Register Face**: Register new people with camera
-3. **View Attendance**: View and export attendance records
-4. **Statistics**: View comprehensive attendance statistics and charts
-5. **Settings**: Configure detection parameters and manage data
+1. **Create a new Space** on Hugging Face
+2. Select **Streamlit** as the SDK
+3. Push this code to your GitHub repository
+4. Hugging Face will automatically build and deploy
 
----
+### Docker Deployment
 
-## Testing in Different Lighting Conditions
+```bash
+# Build the image
+docker build -t attendance-system .
 
-### Using Settings Page
-
-1. Navigate to **Settings** in the dashboard
-2. Click **Test Camera Lighting**
-3. Check the condition assessment:
-   - **Good**: Optimal lighting
-   - **Fair**: Acceptable lighting
-   - **Poor**: Improve lighting
-
-### Manual Testing Tips
-
-- Ensure face is clearly visible
-- Position face centered in frame
-- Avoid backlighting (window behind you)
-- Use even lighting (not too bright, not too dark)
-- Avoid strong shadows on face
+# Run the container
+docker run -p 7860:7860 attendance-system
+```
 
 ---
 
@@ -158,103 +117,65 @@ streamlit run ui/streamlit_app.py
 
 ```
 Week3-Attendence_System/
-├── app.py                    # Main CLI application
-├── requirements.txt         # Python dependencies
-├── README.md               # This file
-│
-├── models/
-│   ├── haarcascade_frontalface_default.xml   # Haar Cascade model
-│   └── face_data.pkl       # Face recognition model
-│
-├── src/
-│   ├── camera.py           # Webcam capture
-│   ├── face_detector.py    # Haar Cascade detection with enhancements
-│   ├── face_recognizer.py # Face recognition with enhancements
-│   ├── attendance_manager.py # Attendance management with stats
-│   └── utils.py           # Helper functions
-│
+├── app.py                    # Main CLI (desktop only)
 ├── ui/
-│   └── streamlit_app.py   # Enhanced Streamlit dashboard
-│
+│   └── streamlit_app.py       # Streamlit web interface
+├── src/
+│   ├── camera.py            # Webcam capture
+│   ├── face detector.py     # Face detection
+│   ├── face_recognizer.py  # Face recognition
+│   └── attendance_manager.py # Attendance tracking
+├── models/
+│   ├── haarcascade_frontalface_default.xml
+│   └── face_data.pkl
 ├── data/
-│   ├── faces/            # Registered face images
-│   └── attendance/       # Attendance CSV files
-│
-└── tests/
-    └── test_attendance.py # Unit tests
-```
-
----
-
-## Attendance CSV Format
-
-```csv
-Name,Date,Time
-John,2026-06-27,09:10:22
-Alice,2026-06-27,09:15:30
+│   ├── faces/             # Registered face images
+│   └── attendance/        # Attendance CSV
+├── requirements.txt       # Python dependencies
+├── Dockerfile           # Docker configuration
+└── README.md           # This file
 ```
 
 ---
 
 ## Configuration
 
-### Detection Settings (Settings Page)
+### Detection Settings
 
 | Setting | Description | Options |
 |---------|------------|---------|
-| Detection Mode | Balance between speed and accuracy | auto, strict, fast |
-| Confidence Threshold | Recognition strictness (lower = stricter) | 0-100 |
-| Equalize Histogram | Improve contrast for varying lighting | on/off |
-
-### Detection Mode Comparison
-
-| Mode | Scale Factor | Min Neighbors | Best For |
-|------|------------|-------------|----------|
-| auto | 1.05 | 3 | Default use |
-| strict | 1.20 | 5 | High security |
-| fast | 1.15 | 4 | Real-time processing |
+| Detection Mode | Speed/accuracy balance | Auto, Strict, Fast |
+| Confidence Threshold | Recognition strictness | 0-100 |
+| Equalize Histogram | Improve contrast | On/Off |
 
 ---
 
-## Troubleshooting
+## Technology Stack
 
-### Camera Not Opening
-
-- Check if webcam is connected
-- Try a different camera index: `python app.py --camera 1`
-
-### Face Not Detected
-
-- Ensure good lighting
-- Face should be clearly visible
-- Position face centered in frame
-
-### Recognition Issues
-
-- Register multiple samples of the same person
-- Lower the confidence threshold in Settings
-- Test lighting conditions
-
-### CSV Export Issues
-
-- Ensure pandas is installed: `pip install pandas`
+- **Python 3.11+** - Programming language
+- **OpenCV** - Computer vision
+- **Streamlit** - Web framework
+- **Pillow** - Image processing
+- **Pandas** - Data handling
 
 ---
 
 ## License
 
-Open Source - Free to use
+MIT License - Open Source
 
 ---
 
 ## Author
 
-**Afynix Digital** - Agentic Hackathon 2025 - Week 4: Computer Vision
+**Afynix Digital** - Agentic Hackathon 2025
+
+Week 4: Computer Vision - Face Recognition Attendance System
 
 ---
 
 ## Acknowledgments
 
-- OpenCV for computer vision capabilities
-- Streamlit for the web dashboard
+- OpenCV community
+- Streamlit team
 - All contributors and testers
